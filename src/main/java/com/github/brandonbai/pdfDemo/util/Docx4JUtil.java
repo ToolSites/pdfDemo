@@ -5,6 +5,9 @@ import org.docx4j.Docx4J;
 import org.docx4j.XmlUtils;
 import org.docx4j.convert.out.FOSettings;
 import org.docx4j.dml.wordprocessingDrawing.Inline;
+import org.docx4j.fonts.IdentityPlusMapper;
+import org.docx4j.fonts.Mapper;
+import org.docx4j.fonts.PhysicalFonts;
 import org.docx4j.model.structure.SectionWrapper;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.exceptions.InvalidFormatException;
@@ -89,13 +92,20 @@ public class Docx4JUtil {
      * @param obj 数据
      * @param os 输出流
      */
-    public static void process(String ftlName, Object obj, OutputStream os) throws IOException, TemplateException, Docx4JException {
+    public static void process(String ftlName, Object obj, OutputStream os) throws Exception {
         // word doc os = ftl + obj
         String generate = FreemarkerUtil.generate(ftlName, obj);
         // word doc os -> str
         ByteArrayInputStream in = new ByteArrayInputStream(generate.getBytes());
         // str -> wordMLPackage object
         WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(in);
+        Mapper fontMapper = new IdentityPlusMapper();
+        //加载字体
+        PhysicalFonts.addPhysicalFonts("SimSun", FreemarkerUtil.class.getResource("/font/simsun.ttc"));
+        //解决宋体（正文）和宋体（标题）的乱码问题
+        PhysicalFonts.put("PMingLiU", PhysicalFonts.get("SimSun"));
+        PhysicalFonts.put("新細明體", PhysicalFonts.get("SimSun"));
+        wordMLPackage.setFontMapper(fontMapper);
         // wordMLPackage -> pdf os
         FOSettings foSettings = Docx4J.createFOSettings();
         foSettings.setWmlPackage(wordMLPackage);

@@ -24,7 +24,7 @@ public class Main {
         map.put("address", "北京市朝阳区");
         map.put("email", "xiaoming@abc.com");
         String ftlName = "resume.ftl";
-        String outputFilePath = "/Users/xiaoming/Desktop/简历.pdf";
+        String outputFilePath = "H:\\toolsites\\pdfDemo\\src\\main\\resources\\简历.pdf";
         FileOutputStream os = new FileOutputStream(outputFilePath);
         Docx4JUtil.process(ftlName, map, os);
 
