@@ -181,3 +181,64 @@ for (int i = 0; i < filesInFolder.length; i++) {
 mergePdf.setDestinationFileName(destPath);
 mergePdf.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
 ```
+### 3. docx4j中出现的问题
+
+#### 3.1、`Word 2003 XML is not supported.`
+解决：更换wps/word版本或者可以从其他地方下载docx文件然后修改
+#### 3.2、docx4j乱码`#`
+解决：在Docx4JUtil加载本地字体
+```java
+ public static void process(String ftlName, Object obj, OutputStream os) throws Exception {
+        // word doc os = ftl + obj
+        String generate = FreemarkerUtil.generate(ftlName, obj);
+        // word doc os -> str
+        ByteArrayInputStream in = new ByteArrayInputStream(generate.getBytes());
+        // str -> wordMLPackage object
+        WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.load(in);
+        Mapper fontMapper = new IdentityPlusMapper();
+        fontMapper.put("隶书", PhysicalFonts.get("LiSu"));
+        fontMapper.put("宋体", PhysicalFonts.get("SimSun"));
+        fontMapper.put("微软雅黑", PhysicalFonts.get("Microsoft Yahei"));
+        fontMapper.put("黑体", PhysicalFonts.get("SimHei"));
+        fontMapper.put("楷体", PhysicalFonts.get("KaiTi"));
+        fontMapper.put("新宋体", PhysicalFonts.get("NSimSun"));
+        fontMapper.put("华文行楷", PhysicalFonts.get("STXingkai"));
+        fontMapper.put("华文仿宋", PhysicalFonts.get("STFangsong"));
+        fontMapper.put("仿宋", PhysicalFonts.get("FangSong"));
+        fontMapper.put("幼圆", PhysicalFonts.get("YouYuan"));
+        fontMapper.put("华文宋体", PhysicalFonts.get("STSong"));
+        fontMapper.put("华文中宋", PhysicalFonts.get("STZhongsong"));
+        fontMapper.put("等线", PhysicalFonts.get("SimSun"));
+        fontMapper.put("等线 Light", PhysicalFonts.get("SimSun"));
+        fontMapper.put("华文琥珀", PhysicalFonts.get("STHupo"));
+        fontMapper.put("华文隶书", PhysicalFonts.get("STLiti"));
+        fontMapper.put("华文新魏", PhysicalFonts.get("STXinwei"));
+        fontMapper.put("华文彩云", PhysicalFonts.get("STCaiyun"));
+        fontMapper.put("方正姚体", PhysicalFonts.get("FZYaoti"));
+        fontMapper.put("方正舒体", PhysicalFonts.get("FZShuTi"));
+        fontMapper.put("华文细黑", PhysicalFonts.get("STXihei"));
+        fontMapper.put("宋体扩展",PhysicalFonts.get("simsun-extB"));
+        fontMapper.put("仿宋_GB2312",PhysicalFonts.get("FangSong_GB2312"));
+        fontMapper.put("新細明體",PhysicalFonts.get("SimSun"));
+        fontMapper.put("Calibri Light",PhysicalFonts.get("SimSun"));
+        //解决宋体（正文）和宋体（标题）的乱码问题
+        PhysicalFonts.put("PMingLiU", PhysicalFonts.get("SimSun"));
+        PhysicalFonts.put("新細明體", PhysicalFonts.get("SimSun"));
+        wordMLPackage.setFontMapper(fontMapper);
+        // wordMLPackage -> pdf os
+        FOSettings foSettings = Docx4J.createFOSettings();
+        foSettings.setWmlPackage(wordMLPackage);
+        foSettings.setApacheFopMime("application/pdf");
+        Docx4J.toFO(foSettings, os, Docx4J.FLAG_EXPORT_PREFER_XSL);
+
+        Docx4J.toPDF(wordMLPackage, os);
+    }
+
+```
+#### 3.3、docx4j在Linux乱码处理
+将字体打包至resources/font目录
+```java
+//加载字体
+PhysicalFonts.addPhysicalFonts("SimSun", FreemarkerUtil.class.getResource("/font/simsun.ttc"));
+
+```
